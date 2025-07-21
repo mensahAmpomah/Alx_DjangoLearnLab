@@ -40,6 +40,7 @@ def login_view(request):
         form = AuthenticationForm()
     return render(request, 'relationship_app/login.html', {'form': form})
 
+
 def logout_view(request):
     logout(request)
     return render(request, 'relationship_app/logout.html')
