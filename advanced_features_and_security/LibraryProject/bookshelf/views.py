@@ -1,4 +1,4 @@
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import permission_required, login_required
 from .models import Article, Book
 
@@ -39,3 +39,15 @@ def book_list(request):
     else:
         books = Book.objects.all()
     return render(request, "bookshelf/book_list.html", {"books": books})
+
+from .forms import BookForm
+
+def create_book(request):
+    if request.method == 'POST':
+        form = BookForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('book_list')
+    else:
+        form = BookForm()
+    return render(request, 'bookshelf/form_example.html', {'form': form})

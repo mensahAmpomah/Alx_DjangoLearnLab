@@ -8,7 +8,7 @@ class BookForm(forms.ModelForm):
 
     def clean_title(self):
         title = self.cleaned_data.get('title')
-        # Sanitize input - prevent malicious input or check rules
+    
         if len(title) < 3:
             raise forms.ValidationError("Title must be at least 3 characters long.")
         return title
