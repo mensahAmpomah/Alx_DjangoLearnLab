@@ -1,14 +1,20 @@
 from django import forms
 from .models import Book
 
-class BookForm(forms.ModelForm):
-    class Meta:
-        model = Book
-        fields = ['title', 'author', 'description', 'published_date']
+class ExampleForm(forms.Form):
+    name = forms.CharField(
+        max_length=100,
+        widget=forms.TextInput(attrs={'placeholder': 'Your name'})
+    )
+    email = forms.EmailField(
+        widget=forms.EmailInput(attrs={'placeholder': 'Your email'})
+    )
+    message = forms.CharField(
+        widget=forms.Textarea(attrs={'placeholder': 'Enter your message'})
+    )
 
-    def clean_title(self):
-        title = self.cleaned_data.get('title')
-    
-        if len(title) < 3:
-            raise forms.ValidationError("Title must be at least 3 characters long.")
-        return title
+    def clean_name(self):
+        name = self.cleaned_data.get('name')
+        if any(char.isdigit() for char in name):
+            raise forms.ValidationError("Name must not contain numbers.")
+        return name
