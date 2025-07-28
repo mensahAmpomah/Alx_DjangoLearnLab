@@ -28,3 +28,14 @@ def article_delete(request, pk):
     article = get_object_or_404(Article, pk=pk)
     # Logic for deleting article
     return render(request, 'bookshelf/article_delete.html', {'article': article})
+
+
+from django.db.models import Q
+
+def book_list(request):
+    query = request.GET.get("q", "")
+    if query:
+        books = Book.objects.filter(Q(title__icontains=query) | Q(author__icontains=query))
+    else:
+        books = Book.objects.all()
+    return render(request, "bookshelf/book_list.html", {"books": books})
