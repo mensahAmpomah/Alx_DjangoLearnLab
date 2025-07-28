@@ -7,7 +7,7 @@ class Book(models.Model):
     author = models.CharField(max_length=100)
     publication_year = models.IntegerField()
 
-class CustomerUserManager(BaseUserManager):
+class CustomUserManager(BaseUserManager):
     def create_user(self, username, email, password=None):
         if not email:
             raise ValueError("The Email field is required.")
@@ -34,6 +34,6 @@ class CustomUser(AbstractUser):
     date_of_birth = models.DateField(null=True, blank=True)
     profile_photo=models.ImageField(upload_to='photos/',null=True,blank=True)
 
-    objects = CustomerUserManager()
+    objects = CustomUserManager()
     def __str__(self):
         return self.username
