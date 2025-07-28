@@ -1,6 +1,7 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import permission_required, login_required
 from .models import Article, Book
+from .forms import ExampleForm
 
 @permission_required('bookshelf.can_view', raise_exception=True)
 def book_list(request):
@@ -30,24 +31,13 @@ def article_delete(request, pk):
     return render(request, 'bookshelf/article_delete.html', {'article': article})
 
 
-from django.db.models import Q
-
-def book_list(request):
-    query = request.GET.get("q", "")
-    if query:
-        books = Book.objects.filter(Q(title__icontains=query) | Q(author__icontains=query))
-    else:
-        books = Book.objects.all()
-    return render(request, "bookshelf/book_list.html", {"books": books})
-
-from .forms import BookForm
-
-def create_book(request):
+def example_form_view(request):
     if request.method == 'POST':
-        form = BookForm(request.POST)
+        form = ExampleForm(request.POST)
         if form.is_valid():
-            form.save()
-            return redirect('book_list')
+            # Securely handle form data
+            return redirect('book_list')  # or wherever you want to redirect
     else:
-        form = BookForm()
+        form = ExampleForm()
+
     return render(request, 'bookshelf/form_example.html', {'form': form})
