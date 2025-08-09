@@ -4,7 +4,12 @@ from .serializers import BookSerializer
 from rest_framework import generics, permissions
 
 
-# Create your views here.
+# Creating of Book Here.
+class BookCreateView(generics.CreateAPIView):
+    queryset = Book.objects.all()
+    serializer_class = BookSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
 # list all books
 class BookListView(generics.ListAPIView):
     queryset = Book.Objects.all()
