@@ -5,7 +5,9 @@ from django.test import TestCase
 from django.urls import reverse
 
 from rest_framework import status
-from rest_framework.test import APIClient
+# from rest_framework.test import APIClient
+
+from rest_framework.test import APITestCase
 
 from .models import Book  # assumes Book model exists with fields: title, author, publication_year
 
@@ -27,7 +29,7 @@ class BookAPITests(TestCase):
     """Tests for Book API endpoints including CRUD, filtering, searching, ordering, and permissions."""
 
     def setUp(self):
-        self.client = APIClient()
+        self.client = APITestCase()
 
         # Create users: one normal user who will be used to authenticate
         self.user = User.objects.create_user(
