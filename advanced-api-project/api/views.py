@@ -13,7 +13,7 @@ class BookCreateView(generics.CreateAPIView):
 
 # list all books
 class BookListView(generics.ListAPIView):
-    queryset = Book.Objects.all()
+    queryset = Book.objects.all()
     serializer_class = BookSerializer
     permission_classes = [IsAuthenticatedOrReadOnly]
 
@@ -29,21 +29,21 @@ class BookListView(generics.ListAPIView):
 
 # Retrieve single book by ID
 class BookDetailView(generics.RetrieveAPIView):
-    queryset = Book.Objects.all()
+    queryset = Book.objects.all()
     serializer_class = BookSerializer
     permission_classes = [IsAuthenticatedOrReadOnly]
 
 
 # Update a Book
 class BookUpdateView(generics.UpdateAPIView):
-    queryset = Book.Objects.all()
+    queryset = Book.objects.all()
     serializer_class = BookSerializer
     permission_classes = [IsAuthenticated]
 
 # Delete a Book
 
 class BookDeleteView(generics.UpdateAPIView):
-    queryset = Book.Objects.all()
+    queryset = Book.objects.all()
     serializer_class = BookSerializer
     permission_classes = [IsAuthenticated]
 
