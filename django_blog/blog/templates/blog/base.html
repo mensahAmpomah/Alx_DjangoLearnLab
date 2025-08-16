@@ -8,6 +8,10 @@
 </head>
 <body>
   <nav>
+  <form action="{% url 'search' %}" method="get" style="display:inline;">
+  <input type="text" name="q" placeholder="Search posts..." value="{{ request.GET.q|default:'' }}">
+  <button type="submit">Search</button>
+</form>
   <a href="{% url 'home' %}">Home</a>
   <a href="{% url 'posts' %}">Posts</a>
   {% if user.is_authenticated %}

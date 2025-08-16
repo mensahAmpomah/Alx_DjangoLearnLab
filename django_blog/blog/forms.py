@@ -34,14 +34,26 @@ class ProfileUpdateForm(forms.ModelForm):
 
 
 class PostForm(ModelForm):
+    tags = forms.CharField(
+        required=False,
+        label='Tags',
+        help_text='Comma-separated tags (e.g. django, python)',
+        widget=forms.TextInput(attrs={'placeholder': 'tag1, tag2, tag3'})
+    )
+
     class Meta:
         model = Post
         fields = ['title', 'content']
-        widgets = {
-            'title': forms.TextInput(attrs={'placeholder': 'Post title', 'class': 'input'}),
-            'content': forms.Textarea(attrs={'placeholder': 'Write your post here...', 'rows': 10, 'class': 'textarea'}),
-        }
-
+        # widgets = {
+        #     'title': forms.TextInput(attrs={'placeholder': 'Post title', 'class': 'input'}),
+        #     'content': forms.Textarea(attrs={'placeholder': 'Write your post here...', 'rows': 10, 'class': 'textarea'}),
+        # }
+    def __init__(self, *args, **kwargs):
+        instance = kwargs.get('instance', None)
+        super().__init__(*args, **kwargs)
+        if instance and instance.pk:
+            # Fill the tags field with current tags
+            self.fields['tags'].initial = ', '.join([t.name for t in instance.tags.all()])
     def clean_title(self):
         title = self.cleaned_data.get('title', '').strip()
         if not title:

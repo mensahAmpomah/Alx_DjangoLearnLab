@@ -5,17 +5,19 @@ from django.contrib.auth import views as auth_views
 from .forms import CustomUserCreationForm, UserUpdateForm, ProfileUpdateForm
 
 from django.shortcuts import get_object_or_404
-from django.urls import reverse_lazy
+
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 from .models import Post, Comment
 from .forms import PostForm
 from .forms import CommentForm
+from django.db.models import Q
 
 from django.shortcuts import get_object_or_404
 from django.urls import reverse, reverse_lazy
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from django.views.generic import CreateView, UpdateView, DeleteView
+from .models import Post, Tag
+from .forms import PostForm
 
 def home(request):
     # simple home page; can list Posts later
@@ -70,11 +72,26 @@ class PostCreateView(LoginRequiredMixin, CreateView):
     model = Post
     form_class = PostForm
     template_name = 'blog/post_form.html'
-    # After successful create, redirect to the detail view
-    # We'll rely on get_absolute_url or override form_valid to redirect to detail.
+    
     def form_valid(self, form):
+        # set author before saving
         form.instance.author = self.request.user
-        return super().form_valid(form)
+        response = super().form_valid(form)  # saves self.object
+        # process tags after instance is saved
+        tags_str = form.cleaned_data.get('tags', '')
+        self._assign_tags_to_post(self.object, tags_str)
+        return response
+
+    def _assign_tags_to_post(self, post, tags_str):
+        names = [t.strip() for t in tags_str.split(',') if t.strip()]
+        tag_objs = []
+        for name in names:
+            # case-insensitive lookup
+            tag = Tag.objects.filter(name__iexact=name).first()
+            if not tag:
+                tag = Tag.objects.create(name=name)
+            tag_objs.append(tag)
+        post.tags.set(tag_objs)
 
 class PostUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = Post
@@ -84,6 +101,62 @@ class PostUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     def test_func(self):
         post = self.get_object()
         return self.request.user == post.author
+    
+    def form_valid(self, form):
+        response = super().form_valid(form)  # saves self.object
+        tags_str = form.cleaned_data.get('tags', '')
+        self._assign_tags_to_post(self.object, tags_str)
+        return response
+
+    def _assign_tags_to_post(self, post, tags_str):
+        names = [t.strip() for t in tags_str.split(',') if t.strip()]
+        tag_objs = []
+        for name in names:
+            tag = Tag.objects.filter(name__iexact=name).first()
+            if not tag:
+                tag = Tag.objects.create(name=name)
+            tag_objs.append(tag)
+        post.tags.set(tag_objs)
+
+class TagPostListView(ListView):
+    model = Post
+    template_name = 'blog/posts_by_tag.html'
+    context_object_name = 'posts'
+    paginate_by = 10
+
+    def get_queryset(self):
+        tag_slug = self.kwargs.get('tag_name')
+        tag = get_object_or_404(Tag, slug=tag_slug)
+        return tag.posts.all()
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        tag_slug = self.kwargs.get('tag_name')
+        context['tag'] = get_object_or_404(Tag, slug=tag_slug)
+        return context
+
+
+class SearchResultsView(ListView):
+    model = Post
+    template_name = 'blog/search_results.html'
+    context_object_name = 'posts'
+    paginate_by = 10
+
+    def get_queryset(self):
+        q = self.request.GET.get('q', '').strip()
+        if not q:
+            return Post.objects.none()
+        # search title, content, and tag names
+        return Post.objects.filter(
+            Q(title__icontains=q) |
+            Q(content__icontains=q) |
+            Q(tags__name__icontains=q)
+        ).distinct()
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['query'] = self.request.GET.get('q', '')
+        return context   
 
 class PostDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     model = Post

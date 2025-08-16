@@ -1,16 +1,9 @@
 {% extends "blog/base.html" %}
 {% block content %}
-  {% if view.__class__.__name__ == 'PostCreateView' %}
-    <h1>Create Post</h1>
-  {% else %}
-    <h1>Edit Post</h1>
-  {% endif %}
-
+  <h1>{% if view.__class__.__name__ == 'PostCreateView' %}Create Post{% else %}Edit Post{% endif %}</h1>
   <form method="post">
     {% csrf_token %}
     {{ form.as_p }}
     <button type="submit">Save</button>
   </form>
-
-  <p><a href="{% url 'posts' %}">Back to posts</a></p>
 {% endblock %}

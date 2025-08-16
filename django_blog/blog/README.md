@@ -93,3 +93,25 @@ Developer notes:
 - Views: Generic CBVs with LoginRequiredMixin and UserPassesTestMixin.
 - Templates: comment_form.html, comment_confirm_delete.html, integrated list & form in post_detail.html
 - Always include CSRF token for forms. Run migrations after adding the model.
+
+
+Tagging & Search Features
+
+- Add tags to a Post:
+  Use the "Tags" input on the post create/edit form and enter comma-separated tags (e.g. django, python, tutorial).
+  Saving the post will create new tags if they do not already exist.
+
+- View posts by tag:
+  Click any tag on a post to view all posts with that tag at /tags/<slug>/
+
+- Search:
+  Use the search bar in the site nav. Search queries look through title, content and tag names.
+  Search results are shown at /search/?q=your+query
+
+- Admin:
+  Tags are manageable from Django Admin. You can edit / delete tags there (note: deleting a tag does not delete posts).
+
+Notes:
+- Tags are case-insensitive when determining uniqueness.
+- Tag slugs are generated automatically and ensure uniqueness by appending -1, -2, etc if needed.
+- Run `python manage.py makemigrations && python manage.py migrate` after adding the Tag model.
