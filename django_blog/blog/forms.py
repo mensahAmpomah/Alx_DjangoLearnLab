@@ -2,6 +2,8 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 from .models import Profile
+from .models import Post
+from django.forms import ModelForm
 
 class CustomUserCreationForm(UserCreationForm):
     email = forms.EmailField(required=True, help_text="Required. Enter a valid email address.")
@@ -28,3 +30,19 @@ class ProfileUpdateForm(forms.ModelForm):
     class Meta:
         model = Profile
         fields = ['bio', 'avatar']
+
+
+class PostForm(ModelForm):
+    class Meta:
+        model = Post
+        fields = ['title', 'content']
+        widgets = {
+            'title': forms.TextInput(attrs={'placeholder': 'Post title', 'class': 'input'}),
+            'content': forms.Textarea(attrs={'placeholder': 'Write your post here...', 'rows': 10, 'class': 'textarea'}),
+        }
+
+    def clean_title(self):
+        title = self.cleaned_data.get('title', '').strip()
+        if not title:
+            raise forms.ValidationError("Title cannot be empty.")
+        return title
