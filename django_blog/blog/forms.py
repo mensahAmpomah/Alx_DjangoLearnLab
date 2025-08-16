@@ -5,6 +5,7 @@ from .models import Profile
 from .models import Post
 from django.forms import ModelForm
 from .models import Comment
+from taggit.forms import TagWidget 
 
 class CustomUserCreationForm(UserCreationForm):
     email = forms.EmailField(required=True, help_text="Required. Enter a valid email address.")
@@ -44,10 +45,9 @@ class PostForm(ModelForm):
     class Meta:
         model = Post
         fields = ['title', 'content']
-        # widgets = {
-        #     'title': forms.TextInput(attrs={'placeholder': 'Post title', 'class': 'input'}),
-        #     'content': forms.Textarea(attrs={'placeholder': 'Write your post here...', 'rows': 10, 'class': 'textarea'}),
-        # }
+        widgets = {
+            'tags':TagWidget()
+        }
     def __init__(self, *args, **kwargs):
         instance = kwargs.get('instance', None)
         super().__init__(*args, **kwargs)
