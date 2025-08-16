@@ -8,8 +8,14 @@ from django.shortcuts import get_object_or_404
 from django.urls import reverse_lazy
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
-from .models import Post
+from .models import Post, Comment
 from .forms import PostForm
+from .forms import CommentForm
+
+from django.shortcuts import get_object_or_404
+from django.urls import reverse, reverse_lazy
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.views.generic import CreateView, UpdateView, DeleteView
 
 def home(request):
     # simple home page; can list Posts later
@@ -54,6 +60,12 @@ class PostDetailView(DetailView):
     template_name = 'blog/post_detail.html'
     context_object_name = 'post'
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['comment_form'] = CommentForm()
+        context['comments'] = self.object.comments.all()
+        return context
+
 class PostCreateView(LoginRequiredMixin, CreateView):
     model = Post
     form_class = PostForm
@@ -81,3 +93,46 @@ class PostDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     def test_func(self):
         post = self.get_object()
         return self.request.user == post.author
+
+
+class CommentCreateView(LoginRequiredMixin, CreateView):
+    model = Comment
+    form_class = CommentForm
+    template_name = 'blog/comment_form.html'  # used if user navigates to separate page
+
+    def dispatch(self, request, *args, **kwargs):
+        # load the post into self.post for later use
+        self.post = get_object_or_404(Post, pk=self.kwargs.get('post_pk'))
+        return super().dispatch(request, *args, **kwargs)
+
+    def form_valid(self, form):
+        form.instance.author = self.request.user
+        form.instance.post = self.post
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        # Redirect back to the post detail page
+        return reverse('post-detail', kwargs={'pk': self.post.pk})
+
+class CommentUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+    model = Comment
+    form_class = CommentForm
+    template_name = 'blog/comment_form.html'
+
+    def get_success_url(self):
+        return reverse('post-detail', kwargs={'pk': self.get_object().post.pk})
+
+    def test_func(self):
+        comment = self.get_object()
+        return self.request.user == comment.author
+
+class CommentDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
+    model = Comment
+    template_name = 'blog/comment_confirm_delete.html'
+
+    def get_success_url(self):
+        return reverse_lazy('post-detail', kwargs={'pk': self.get_object().post.pk})
+
+    def test_func(self):
+        comment = self.get_object()
+        return self.request.user == comment.author

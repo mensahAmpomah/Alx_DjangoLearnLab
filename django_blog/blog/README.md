@@ -65,3 +65,31 @@ Testing:
 Notes:
 - Add get_absolute_url to Post model to ensure proper redirect after create/update.
 - Run migrations after changes: `python manage.py makemigrations && python manage.py migrate`.
+
+
+
+
+Comment System — README
+
+Routes:
+- POST create (inline from post detail or separate page):
+  /post/<post_pk>/comments/new/   (CommentCreateView) - login required
+
+- Edit comment:
+  /post/<post_pk>/comments/<pk>/edit/  (CommentUpdateView) - author only
+
+- Delete comment:
+  /post/<post_pk>/comments/<pk>/delete/ (CommentDeleteView) - author only
+
+How to use:
+- Anonymous users can read comments but must log in to comment.
+- Logged-in users can post comments using the form on the post detail page.
+- A comment author can edit or delete their own comments.
+- Comments are linked to a post; deleting a post will delete its comments.
+
+Developer notes:
+- Model: Comment(post FK, author FK, content, created_at, updated_at).
+- Form: CommentForm validates non-empty content.
+- Views: Generic CBVs with LoginRequiredMixin and UserPassesTestMixin.
+- Templates: comment_form.html, comment_confirm_delete.html, integrated list & form in post_detail.html
+- Always include CSRF token for forms. Run migrations after adding the model.

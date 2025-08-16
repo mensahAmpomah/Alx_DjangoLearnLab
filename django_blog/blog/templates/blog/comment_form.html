@@ -1,0 +1,15 @@
+{% extends "blog/base.html" %}
+{% block content %}
+  {% if view.__class__.__name__ == 'CommentCreateView' %}
+    <h2>Add a comment</h2>
+  {% else %}
+    <h2>Edit comment</h2>
+  {% endif %}
+
+  <form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Save</button>
+    <a href="{% url 'post-detail' pk=view.kwargs.post_pk|default:form.instance.post.pk %}">Cancel</a>
+  </form>
+{% endblock %}
