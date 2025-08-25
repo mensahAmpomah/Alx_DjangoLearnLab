@@ -9,6 +9,8 @@ from django.shortcuts import get_object_or_404
 from rest_framework import permissions, status, generics
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from .models import CustomUser
+from .serializers import UserSerializer
 
 from .serializers import SimpleUserSerializer, FollowActionSerializer
 
@@ -54,58 +56,30 @@ class ProfileView(generics.RetrieveUpdateAPIView):
         return self.request.user
     
 
-
-User = get_user_model()
-
-class FollowUserView(APIView):
-    """
-    POST   /api/accounts/follow/<int:user_id>/    -> follow the user
-    DELETE /api/accounts/follow/<int:user_id>/    -> unfollow the user
-    """
+class FollowUserView(generics.GenericAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
-    def post(self, request, user_id, format=None):
-        target = get_object_or_404(User, id=user_id)
-        if target.id == request.user.id:
-            return Response({'detail': "You cannot follow yourself."}, status=status.HTTP_400_BAD_REQUEST)
+    def post(self, request, user_id):
+        user_to_follow = get_object_or_404(CustomUser, id=user_id)
+        if request.user == user_to_follow:
+            return Response({"detail": "You cannot follow yourself."}, status=status.HTTP_400_BAD_REQUEST)
 
-        # add to following
-        request.user.following.add(target)
-        request.user.save()
-
-        data = {
-            'target_user_id': target.id,
-            'following': True,
-            'followers_count': target.followers.count(),
-            'following_count': request.user.following.count()
-        }
-        return Response(FollowActionSerializer(data).data, status=status.HTTP_200_OK)
-
-    def delete(self, request, user_id, format=None):
-        target = get_object_or_404(User, id=user_id)
-        if target.id == request.user.id:
-            return Response({'detail': "You cannot unfollow yourself."}, status=status.HTTP_400_BAD_REQUEST)
-
-        # remove from following
-        request.user.following.remove(target)
-        request.user.save()
-
-        data = {
-            'target_user_id': target.id,
-            'following': False,
-            'followers_count': target.followers.count(),
-            'following_count': request.user.following.count()
-        }
-        return Response(FollowActionSerializer(data).data, status=status.HTTP_200_OK)
+        request.user.following.add(user_to_follow)
+        return Response({"detail": f"You are now following {user_to_follow.username}."}, status=status.HTTP_200_OK)
 
 
-class FollowingListView(generics.ListAPIView):
-    """
-    GET /api/accounts/following/ -> list of users current user follows
-    """
-    serializer_class = SimpleUserSerializer
+class UnfollowUserView(generics.GenericAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
-    def get_queryset(self):
-        # return QuerySet of users this user follows
-        return self.request.user.following.all()
+    def post(self, request, user_id):
+        user_to_unfollow = get_object_or_404(CustomUser, id=user_id)
+        if request.user == user_to_unfollow:
+            return Response({"detail": "You cannot unfollow yourself."}, status=status.HTTP_400_BAD_REQUEST)
+
+        request.user.following.remove(user_to_unfollow)
+        return Response({"detail": f"You have unfollowed {user_to_unfollow.username}."}, status=status.HTTP_200_OK)
+
+class UserListView(generics.ListAPIView):
+    queryset = CustomUser.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = [permissions.IsAuthenticated]
