@@ -1,17 +1,14 @@
 from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
-from rest_framework.authtoken.models import Token  # REQUIRED by checker
-
-User = get_user_model()
-
+from rest_framework.authtoken.models import Token 
 
 class UserSerializer(serializers.ModelSerializer):
     followers_count = serializers.SerializerMethodField()
     following_count = serializers.SerializerMethodField()
 
     class Meta:
-        model = User
+        model = get_user_model()
         fields = [
             'id', 'username', 'email', 'first_name', 'last_name',
             'bio', 'profile_picture', 'followers_count', 'following_count'
@@ -30,7 +27,7 @@ class RegisterSerializer(serializers.ModelSerializer):
     password2 = serializers.CharField(write_only=True, required=True)
 
     class Meta:
-        model = User
+        model = get_user_model()
         fields = ('username', 'email', 'password', 'password2', 'first_name', 'last_name', 'bio')
 
     def validate(self, attrs):
@@ -42,10 +39,10 @@ class RegisterSerializer(serializers.ModelSerializer):
         validated_data.pop('password2', None)
         password = validated_data.pop('password')
 
-      
-        user = User.objects.create_user(password=password, **validated_data)
+       
+        user = get_user_model().objects.create_user(password=password, **validated_data)
 
-      
+        
         Token.objects.create(user=user)
 
         return user
